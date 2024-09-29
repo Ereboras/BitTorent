@@ -62,3 +62,67 @@ class Encoder:
 	
 	def _isDataTypeValid(self, data) -> bool:
 		return isinstance(data, int) or isinstance(data, str) or isinstance(data, list) or isinstance(data, OrderedDict)
+	
+class Decoder:
+
+	def __init__(self, data: bytes):
+		self.data = data
+		self.index = 0
+
+	def decode(self):
+		if self.index > len(self.data):
+			return None
+		nextChar = self.data[self.index:self.index + 1] # Python automatically cast to int if accessed directly with self.index, so we use slicing instead
+
+		if nextChar is None or nextChar == b'':
+			raise EOFError('Unexpected end of data, there might be a missing end marker in the data provided')
+		
+		if nextChar == b'i':
+			self.index += 1
+			return self._decodeInt()
+		elif nextChar in b'0123456789':
+			return self._decodeStr() 
+		elif nextChar == b'l':
+			self.index += 1
+			return self._decodeList()
+		elif nextChar == b'd':
+			self.index += 1
+			return self._decodeDict()
+
+	def _readUntil(self, token: bytes) -> bytes:
+		try:
+			indexEnd = self.data.index(token, self.index)
+			data = self.data[self.index:indexEnd]
+			self.index = indexEnd + 1
+			return data
+		except:
+			raise EOFError(f'Unable to find token {str(token)}')
+
+	def _decodeInt(self) -> int:
+		return int(self._readUntil(b'e'))
+	
+	def _decodeStr(self) -> str:
+		lengthStr = int(self._readUntil(b':'))
+		if self.index + lengthStr > len(self.data):
+			raise EOFError(f'Unexpected end of data, string at position {self.index} specify {lengthStr} chars long but data is only {len(self.data)} bytes')
+		tmpStr = (self.data[self.index:self.index + lengthStr]).decode('utf-8')
+		self.index += lengthStr
+		return tmpStr
+	
+	def _decodeList(self):
+		tmpList = []
+		while self.data[self.index:self.index + 1] != b'e':
+			tmpList.append(self.decode())
+		self.index += 1
+		return tmpList
+	
+	def _decodeDict(self):
+		tmpDict = OrderedDict()
+		while self.data[self.index:self.index + 1] != b'e':
+			key = self.decode()
+			if not isinstance(key, str):
+				raise TypeError(f'Key {key} is of type {type(key)} but key of Ordered dict must be of type str')
+			value = self.decode()
+			tmpDict[key] = value
+		self.index += 1
+		return tmpDict

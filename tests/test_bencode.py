@@ -1,6 +1,6 @@
 import unittest
 from collections import OrderedDict
-from pieces.bencode import Encoder
+from pieces.bencode import Encoder, Decoder
 
 class TestBencodeMethods(unittest.TestCase):
 
@@ -40,3 +40,34 @@ class TestBencodeMethods(unittest.TestCase):
         mydict[123] = 'Ereboras'
         mydict['age'] = 3
         self.assertRaises(TypeError, Encoder(mydict).encode)
+
+    def test_decode_int(self):
+        self.assertEqual(Decoder(b'i123e').decode(), 123)
+
+    def test_decode_int_error_end(self):
+        self.assertRaises(EOFError, Decoder(b'i123').decode)
+
+    def test_decode_str(self):
+        self.assertEqual(Decoder(b'12:Hello World!').decode(), 'Hello World!')
+
+    def test_decode_str_error_end(self):
+        self.assertRaises(EOFError, Decoder(b'15:Hello World!').decode)
+
+    def test_decode_list(self):
+        self.assertEqual(Decoder(b'l12:Hello World!i123e3:youe').decode(), ['Hello World!', 123, 'you'])
+
+    def test_decode_dict(self):
+        mydict = OrderedDict()
+        mydict['town'] = 'New York'
+        mydict['123'] = 'Ereboras'
+        mydict['age'] = 3
+        mydict['list'] = ['Hello World!', 123, 'you']
+        self.assertEqual(Decoder(b'd4:town8:New York3:1238:Ereboras3:agei3e4:listl12:Hello World!i123e3:youee').decode(), mydict)
+
+    def test_decode_dict_error_type_key(self):
+        mydict = OrderedDict()
+        mydict['town'] = 'New York'
+        mydict[123] = 'Ereboras'
+        mydict['age'] = 3
+        mydict['list'] = ['Hello World!', 123, 'you']
+        self.assertRaises(TypeError, Decoder(b'd4:town8:New Yorki123e8:Ereboras3:agei3e4:listl12:Hello World!i123e3:youee').decode)
