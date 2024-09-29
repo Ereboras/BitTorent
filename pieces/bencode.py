@@ -101,27 +101,27 @@ class Decoder:
 	def _decodeInt(self) -> int:
 		return int(self._readUntil(b'e'))
 	
-	def _decodeStr(self) -> str:
+	def _decodeStr(self) -> bytes:
 		lengthStr = int(self._readUntil(b':'))
 		if self.index + lengthStr > len(self.data):
 			raise EOFError(f'Unexpected end of data, string at position {self.index} specify {lengthStr} chars long but data is only {len(self.data)} bytes')
-		tmpStr = (self.data[self.index:self.index + lengthStr]).decode('utf-8')
+		tmpStr = self.data[self.index:self.index + lengthStr]
 		self.index += lengthStr
 		return tmpStr
 	
-	def _decodeList(self):
+	def _decodeList(self) -> list:
 		tmpList = []
 		while self.data[self.index:self.index + 1] != b'e':
 			tmpList.append(self.decode())
 		self.index += 1
 		return tmpList
 	
-	def _decodeDict(self):
+	def _decodeDict(self) -> OrderedDict:
 		tmpDict = OrderedDict()
 		while self.data[self.index:self.index + 1] != b'e':
 			key = self.decode()
-			if not isinstance(key, str):
-				raise TypeError(f'Key {key} is of type {type(key)} but key of Ordered dict must be of type str')
+			if not isinstance(key, bytes):
+				raise TypeError(f'Key {key} is of type {type(key)} but key of Ordered dict must be of string format')
 			value = self.decode()
 			tmpDict[key] = value
 		self.index += 1
