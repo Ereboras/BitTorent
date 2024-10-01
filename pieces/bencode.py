@@ -2,20 +2,24 @@ from collections import OrderedDict
 
 class Encoder:
 
+	encoding: str = 'utf-8'
+
 	def __init__(self, data):
 		if not self._isDataTypeValid(data):
 			raise TypeError(f'Bencode data must be of type str, int, list or OrderedDict, not {type(data)}')
 		self.data = data
 
-	def encode(self) -> bytes:
-		return self._encodeDispatcher(self.data).encode('utf-8')
+	def encode(self) -> bytearray:
+		return self._encodeDispatcher(self.data)
 	
-	def _encodeDispatcher(self, data) -> str:
-		tmpLine = ''
+	def _encodeDispatcher(self, data) -> bytearray:
+		tmpLine: bytearray = bytearray()
 		if isinstance(data, int):
 			tmpLine = self._encodeInt(data)
 		elif isinstance(data, str):
 			tmpLine = self._encodeStr(data)
+		elif isinstance(data, bytes):
+			tmpLine = self._encodeBytes(data)
 		elif isinstance(data, list):
 			tmpLine = self._encodeList(data)
 		else:
@@ -23,45 +27,41 @@ class Encoder:
 
 		return tmpLine
 	
-	def _encodeInt(self, data: int) -> str:
-		tmpLine = 'i'
-		tmpLine += str(data)
-		tmpLine += 'e'
-		return tmpLine
+	def _encodeInt(self, data: int) -> bytearray:
+		return ('i' + str(data) + 'e').encode(self.encoding)
 	
-	def _encodeStr(self, data: str) -> str:
-		tmpLine = str(len(data))
-		tmpLine += ':'
-		tmpLine += data
-
-		return tmpLine
+	def _encodeStr(self, data: str) -> bytearray:
+		return (str(len(data)) + ':' + data).encode(self.encoding)
 	
-	def _encodeList(self, data: list) -> str:
-		tmpLine = 'l'
+	def _encodeBytes(self, data: bytes) -> bytearray:
+		return (str(len(data))).encode(self.encoding) + b':' + data
+	
+	def _encodeList(self, data: list) -> bytearray:
+		tmpLine: bytearray = b'l'
 
 		for value in data:
 			if not self._isDataTypeValid(value):
 				raise TypeError(f'Value in list must be of type str, int, list or OrderedDict, not {type(value)}')
 			tmpLine += self._encodeDispatcher(value)
 
-		tmpLine += 'e'
+		tmpLine += b'e'
 		return tmpLine
 	
-	def _encodeOrderedDict(self, data: OrderedDict) -> str:
-		tmpLine = 'd'
+	def _encodeOrderedDict(self, data: OrderedDict) -> bytearray:
+		tmpLine: bytearray = b'd'
 		for key, value in data.items():
-			if not isinstance(key, str):
-				raise TypeError(f'Key in OrderedDict must be of type str for bencode encoding, not {type(key)}')
+			if not isinstance(key, str) and not isinstance(key, bytes):
+				raise TypeError(f'Key in OrderedDict must be of type str or bytes for bencode encoding, not {type(key)}')
 			if not self._isDataTypeValid(value):
 				raise TypeError(f'Value in OrderedDict must be of type str, int, list or OrderedDict, not {type(value)}')
 			
 			tmpLine += self._encodeDispatcher(key) + self._encodeDispatcher(value)
 
-		tmpLine += 'e'
+		tmpLine += b'e'
 		return tmpLine
 	
 	def _isDataTypeValid(self, data) -> bool:
-		return isinstance(data, int) or isinstance(data, str) or isinstance(data, list) or isinstance(data, OrderedDict)
+		return isinstance(data, int) or isinstance(data, str) or isinstance(data, list) or isinstance(data, OrderedDict) or isinstance(data, bytes)
 	
 class Decoder:
 

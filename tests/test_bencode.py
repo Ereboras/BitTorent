@@ -10,6 +10,9 @@ class TestBencodeMethods(unittest.TestCase):
     def test_encode_str(self):
         self.assertEqual(Encoder('Hello World!').encode(), b'12:Hello World!')
 
+    def test_encode_bytes(self):
+        self.assertEqual(Encoder(b'Hello World!').encode(), b'12:Hello World!')
+
     def test_encode_list(self):
         self.assertEqual(Encoder([1, 2, 3]).encode(), b'li1ei2ei3ee')
 
@@ -18,6 +21,13 @@ class TestBencodeMethods(unittest.TestCase):
         mydict['town'] = 'New York'
         mydict['name'] = 'Ereboras'
         mydict['age'] = 3
+        self.assertEqual(Encoder(mydict).encode(), b'd4:town8:New York4:name8:Ereboras3:agei3ee')
+
+    def test_encode_orderddict_with_bytes_keys(self):
+        mydict = OrderedDict()
+        mydict[b'town'] = 'New York'
+        mydict[b'name'] = 'Ereboras'
+        mydict[b'age'] = 3
         self.assertEqual(Encoder(mydict).encode(), b'd4:town8:New York4:name8:Ereboras3:agei3ee')
 
     def test_encode_error_type(self):
