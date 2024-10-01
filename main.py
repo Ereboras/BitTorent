@@ -1,9 +1,11 @@
-from collections import OrderedDict
-from pieces.bencode import Encoder, Decoder
 from pieces.torrent import Torrent
+import argparse
 
-with open('torrent-files/example.torrent', 'rb') as f:
-	meta_info = f.read()
-	torrent = Decoder(meta_info).decode()
+parser = argparse.ArgumentParser(
+	description='This BitTorrent client can be used to download file through BitTorrent protocol.',
+)
 
-print(Torrent(torrent))
+parser.add_argument('filepath',help='The path to the torrent file')
+args = parser.parse_args()
+
+print(Torrent(args.filepath))

@@ -1,15 +1,19 @@
+from pieces.bencode import Decoder
 from collections import OrderedDict
 import datetime
 
 class Torrent:
 
-	def __init__(self, data: OrderedDict):
-		if not isinstance(data, OrderedDict):
-			raise TypeError(f'Torrent data must be Ordered dict, data is {type(data)} instead')
+	def __init__(self, filePath: str):
+		if not isinstance(filePath, str):
+			raise TypeError(f'File path must be str, filePath is {type(data)} instead')
+		
+		with open(filePath, 'rb') as f:
+			meta_info = f.read()
+			fileData = Decoder(meta_info).decode()
 
-		self._importProperties(data)
-		self._importFiles(data)
-
+		self._importProperties(fileData)
+		self._importFiles(fileData)
 
 	def _importProperties(self, data : OrderedDict):
 		self.properties = dict()
