@@ -1,6 +1,7 @@
-from pieces.bencode import Decoder
+from pieces.bencode import Decoder, Encoder
 from collections import OrderedDict
 import datetime
+import hashlib
 
 class Torrent:
 
@@ -29,10 +30,12 @@ class Torrent:
 			self.properties['created-by'] = data[b'created by'].decode(self.properties['encoding'])
 		if b'creation date' in data:
 			self.properties['creation-date'] = datetime.datetime.fromtimestamp(data[b'creation date'])
+		if b'info' in data:
+			self.properties['info-hash'] = hashlib.sha1(Encoder(data[b'info']).encode(),usedforsecurity=False).hexdigest()
 		if b'info' in data and b'name' in data[b'info']:
 			self.properties['name'] = data[b'info'][b'name'].decode(self.properties['encoding'])
 		if b'info' in data and b'length' in data[b'info']:
-			self.properties['length'] = data[b'info'][b'length'].decode(self.properties['encoding'])
+			self.properties['length'] = data[b'info'][b'length']
 		if b'info' in data and b'piece length' in data[b'info']:
 			self.properties['piece-length'] = self._convertBytes(data[b'info'][b'piece length'])
 
