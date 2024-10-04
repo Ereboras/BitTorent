@@ -10,7 +10,7 @@ class TestTorrentMethods(unittest.TestCase):
 		self.assertEqual(torrent.properties['created-by'], 'mktorrent 1.1')
 		self.assertEqual(torrent.properties['creation-date'], datetime.datetime.fromtimestamp(1724947415))
 		self.assertEqual(torrent.properties['name'], 'ubuntu-24.04.1-desktop-amd64.iso')
-		self.assertEqual(torrent.properties['info-hash'], '4a3f5e08bcef825718eda30637230585e3330599')
+		self.assertEqual(torrent.properties['info-hash'], b'J?^\x08\xbc\xef\x82W\x18\xed\xa3\x067#\x05\x85\xe33\x05\x99')
 		self.assertEqual(torrent.files, list())
 
 	def test_import_from_debian_file(self):
@@ -19,7 +19,7 @@ class TestTorrentMethods(unittest.TestCase):
 		self.assertEqual(torrent.properties['created-by'], 'mktorrent 1.1')
 		self.assertEqual(torrent.properties['creation-date'], datetime.datetime.fromtimestamp(1725105953))
 		self.assertEqual(torrent.properties['name'], 'debian-12.7.0-amd64-netinst.iso')
-		self.assertEqual(torrent.properties['info-hash'], '1bd088ee9166a062cf4af09cf99720fa6e1a3133')
+		self.assertEqual(torrent.properties['info-hash'], b'\x1b\xd0\x88\xee\x91f\xa0b\xcfJ\xf0\x9c\xf9\x97 \xfan\x1a13')
 		self.assertEqual(torrent.files, list())
 
 	def test_import_error_filepath_type(self):
@@ -31,4 +31,7 @@ class TestTorrentMethods(unittest.TestCase):
 		self.assertRaises(FileNotFoundError, Torrent, 'torrent-files/fake-file.torrent')
 
 	def test_display_bytes_size_format(self):
-		self.assertEqual(Torrent._convertBytes(1000), '1000 bytes')
+		self.assertEqual(Torrent._convertBytes(0, 1000), '1000.0 bytes')
+		self.assertEqual(Torrent._convertBytes(0, 1024), '1.0 KB')
+		self.assertEqual(Torrent._convertBytes(0, 1500000), '1.4 MB')
+		self.assertEqual(Torrent._convertBytes(0, 6000000000), '5.6 GB')

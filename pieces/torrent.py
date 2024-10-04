@@ -89,4 +89,5 @@ class Torrent:
 
 		tmpStr += '|=========== FILES ==========|\n'
 		tmpStr += self._formatFiles()
+		tmpStr += '|============================|\n'
 		return tmpStr
