@@ -43,8 +43,9 @@ class Tracker:
 
 				now = time.time()
 				nextTimestamp = self._timeUntilNextRequest(filePath)
-				logging.debug(f'File found at {filePath.absolute()}, valid until {time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(nextTimestamp))}.')
+				logging.debug(f'File found at {filePath.absolute()}, valid until {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(nextTimestamp))}.')
 				if now > nextTimestamp:
+					logging.debug(f'File is not valid anymore (current time {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(now))}), sending request to tracker...')
 					shouldConnect = True
 		else:
 			shouldConnect = True
@@ -77,7 +78,7 @@ class Tracker:
 				self.trackerData[b'peers'] = peers
 				with filePath.open('w') as f:
 					f.write(Encoder(self.trackerData).encode().decode('utf-8'))
-					logging.debug(f'File generated at {filePath.absolute()}. This file will be valid until {time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(self._timeUntilNextRequest(filePath)))}')
+					logging.debug(f'File generated at {filePath.absolute()}. This file will be valid until {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(self._timeUntilNextRequest(filePath)))}')
 
 	def _timeUntilNextRequest(self, filePath: pathlib.Path):
 		return os.path.getmtime(filePath) + self.trackerData[b'interval']
