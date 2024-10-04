@@ -2,3 +2,5 @@ commands
 dev
 *.torrent
 *.pyc
+tmp
+logs/*.log
