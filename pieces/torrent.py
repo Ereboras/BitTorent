@@ -7,7 +7,7 @@ class Torrent:
 
 	def __init__(self, filePath: str):
 		if not isinstance(filePath, str):
-			raise TypeError(f'File path must be str, filePath is {type(data)} instead')
+			raise TypeError(f'File path must be str, filePath is {type(filePath)} instead')
 		
 		with open(filePath, 'rb') as f:
 			meta_info = f.read()
@@ -31,7 +31,7 @@ class Torrent:
 		if b'creation date' in data:
 			self.properties['creation-date'] = datetime.datetime.fromtimestamp(data[b'creation date'])
 		if b'info' in data:
-			self.properties['info-hash'] = hashlib.sha1(Encoder(data[b'info']).encode(),usedforsecurity=False).hexdigest()
+			self.properties['info-hash'] = hashlib.sha1(Encoder(data[b'info']).encode(),usedforsecurity=False).digest()
 		if b'info' in data and b'name' in data[b'info']:
 			self.properties['name'] = data[b'info'][b'name'].decode(self.properties['encoding'])
 		if b'info' in data and b'length' in data[b'info']:
@@ -85,6 +85,7 @@ class Torrent:
 		tmpStr += self._formatProperties('name', 'Name')
 		tmpStr += self._formatProperties('length', 'Length')
 		tmpStr += self._formatProperties('piece-length', 'Piece length')
+		tmpStr += self._formatProperties('info-hash', 'Info hash')
 
 		tmpStr += '|=========== FILES ==========|\n'
 		tmpStr += self._formatFiles()
